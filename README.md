@@ -33,7 +33,7 @@ O **In Stock** é uma aplicação backend para controle de estoque, com foco em 
 
 ### 1. Clonar o Repositório
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/byzequinha/in-stock-backend
 cd in-stock-backend
 ```
 
