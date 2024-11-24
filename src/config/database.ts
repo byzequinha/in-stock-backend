@@ -4,11 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
+  user: 'admin',
+  host: '172.19.0.3', // Substituído pelo IP do contêiner PostgreSQL
+  database: 'in_stock',
+  password: 'admin123',
+  port: 5432,
 });
 
 export default pool;
