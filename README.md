@@ -25,6 +25,7 @@ O **In Stock** é uma aplicação backend para controle de estoque, com foco em 
 - **TypeScript**: Tipagem estática para JavaScript.
 - **PostgreSQL (em breve)**: Banco de dados relacional.
 - **JWT (JSON Web Tokens)**: Autenticação segura.
+- **Docker**: Contêiner para facilitar deploy e desenvolvimento.
 - **ThunderClient**: Ferramenta para testes de APIs.
 
 ---
@@ -48,6 +49,12 @@ Crie um arquivo ```.env``` na raiz do projeto e configure as seguintes variávei
 ```bash
 PORT=3000
 JWT_SECRET=defaultSecretKey
+POSTGRES_USER=seu_usuario
+POSTGRES_PASSWORD=sua_senha
+POSTGRES_DB=in_stock
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+
 ```
 ---
 ### 4. Iniciar o Servidor
@@ -72,15 +79,27 @@ Remove um usuário específico (Apenas Supervisores).
 - GET ```/api/users/test```
 Testa a autenticação de um token JWT.
 
+**Produtos**
+- GET ```/api/products```
+Lista todos os produtos.
+- POST ```/api/products```
+Cria um novo produto.
+- PUT ```/api/products/:id```
+Atualiza informações de um produto específico.
+- DELETE ```/api/products/:id```
+Remove um produto específico.
+- POST```/api/products/:id/sale```
+Registra uma venda para o produto especificado.
+
 ---
 
 ### Próximos Passos
 ---
-**1. Integração com Banco de Dados:**
-Conectar o sistema ao PostgreSQL para persistência de dados.
+**1. Documentação da API:**
+Adicionar documentação com Swagger para facilitar o uso da API.
 
-**2. Controle de Estoque:**
-Implementar CRUD para produtos e gerenciamento de entradas/saídas.
+**2. Validações:**
+Implementar validações robustas nos dados de entrada usando bibliotecas como ``` joi ``` ou ``` zod ```.
 
 **3. Testes Automatizados:**
 Criar testes com ``` jest ``` para garantir a estabilidade do sistema.
