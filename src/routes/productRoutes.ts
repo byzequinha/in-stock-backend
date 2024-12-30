@@ -68,20 +68,22 @@ productRoutes.get('/', async (req: Request, res: Response) => {
  *       400:
  *         description: Dados inválidos.
  */
-productRoutes.post('/', validateBody(productSchema), async (req: Request, res: Response) => {
+productRoutes.post('/', async (req: Request, res: Response) => {
   const { name, price } = req.body;
 
   try {
+    console.log('Inserting product:', { name, price }); // Log para depuração
     const result = await pool.query(
       'INSERT INTO products (name, price) VALUES ($1, $2) RETURNING *',
       [name, price]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error('Database error:', err); // Log detalhado do erro
     res.status(500).json({ error: 'Database error' });
   }
 });
+
 
 /**
  * @swagger
