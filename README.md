@@ -95,16 +95,13 @@ Registra uma venda para o produto especificado.
 
 ### Próximos Passos
 ---
-**1. Documentação da API:**
-Adicionar documentação com Swagger para facilitar o uso da API.
-
-**2. Validações:**
+**1. Validações:**
 Implementar validações robustas nos dados de entrada usando bibliotecas como ``` joi ``` ou ``` zod ```.
 
-**3. Testes Automatizados:**
+**2. Testes Automatizados:**
 Criar testes com ``` jest ``` para garantir a estabilidade do sistema.
 
-**4. Deploy:**
+**3. Deploy:**
 Configurar o deploy da aplicação usando Docker e plataformas como AWS ou Heroku.
 
 ---
