@@ -75,14 +75,17 @@ productRoutes.post('/', async (req: Request, res: Response) => {
     console.log('Inserting product:', { name, price }); // Log para depuração
     const result = await pool.query(
       'INSERT INTO products (name, price) VALUES ($1, $2) RETURNING *',
-      [name, price]
+      [name, parseFloat(price)] // Converte para número ao salvar
     );
-    res.status(201).json(result.rows[0]);
+    const product = result.rows[0];
+    product.price = parseFloat(product.price); // Garante que o retorno seja numérico
+    res.status(201).json(product);
   } catch (err) {
     console.error('Database error:', err); // Log detalhado do erro
     res.status(500).json({ error: 'Database error' });
   }
 });
+
 
 
 /**

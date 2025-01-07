@@ -39,8 +39,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ message: 'Algo deu errado!' });
 });
 
-// Iniciar o servidor
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-  console.log(`Swagger Docs available at http://localhost:${port}/api-docs`);
-});
+// Exportar o `app` para uso em testes
+export default app;
+
+// Inicializar o servidor somente se o arquivo for executado diretamente
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Swagger Docs available at http://localhost:${port}/api-docs`);
+  });
+}

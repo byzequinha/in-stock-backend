@@ -8,7 +8,7 @@ Um sistema de controle de estoque eficiente, com autenticação baseada em JWT, 
 ## Sumário
 - [Sobre o Projeto](#sobre-o-projeto)
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
-- [Configuração-e-Instalação](#configuração-e-instalação)
+- [Configuração e Instalação](#configuração-e-instalação)
 - [Endpoints Disponíveis](#endpoints-disponíveis)
 - [Testes Automatizados](#testes-automatizados)
 - [Próximos Passos](#próximos-passos)
@@ -25,7 +25,7 @@ O **In Stock** é uma aplicação backend para controle de estoque, com foco em 
 - **Node.js**: Ambiente de execução JavaScript.
 - **Express**: Framework web para criar APIs RESTful.
 - **TypeScript**: Tipagem estática para JavaScript.
-- **PostgreSQL (em breve)**: Banco de dados relacional.
+- **PostgreSQL**: Banco de dados relacional.
 - **JWT (JSON Web Tokens)**: Autenticação segura.
 - **Docker**: Contêiner para facilitar deploy e desenvolvimento.
 - **Joi/Zod**: Validações de entrada de dados.
@@ -68,6 +68,7 @@ npx ts-node-dev src/server.ts
 ---
 
 ## Endpoints Disponíveis
+
 **Autenticação**
 - POST `/api/auth/login`: Autentica um usuário mockado e retorna um token JWT.
 
@@ -93,9 +94,9 @@ npx ts-node-dev src/server.ts
 Os endpoints foram inicialmente testados usando **Swagger**, garantindo que a estrutura da API e as respostas esperadas estivessem corretas antes da implementação das validações com **Joi/Zod**.
 
 ### Testes com Jest
-Após a implementação das validações, os testes automatizados foram realizados com **Jest** para garantir a robustez do sistema. Foram testados casos de validação de dados, incluindo:
+Após a implementação das validações, os testes automatizados foram realizados com **Jest** para garantir a robustez do sistema. Foram testados casos de validação de dados e integração com a API, incluindo:
 - Produtos válidos e inválidos (nome curto, preço negativo, etc.).
-- Integração com a API (em desenvolvimento).
+- Testes de integração para os endpoints do sistema.
 
 ### Executar os Testes
 Para rodar os testes:
@@ -112,14 +113,19 @@ PASS  src/tests/productValidation.test.ts
     ✓ Deve falhar quando o preço for negativo
     ✓ Deve falhar quando o preço não for fornecido
 
-Test Suites: 1 passed, 1 total
-Tests:       4 passed, 4 total
+PASS  src/tests/productRoutes.test.ts
+  Testes de Integração - Produtos
+    ✓ Deve criar um novo produto (50 ms)
+    ✓ Deve listar os produtos (40 ms)
+
+Test Suites: 2 passed, 2 total
+Tests:       6 passed, 6 total
 ```
 
 ---
 
 ## Próximos Passos
-1. **Testes de Integração**: Implementar testes de integração para os endpoints.
+1. **Frontend**: Desenvolver a interface do sistema, conectando-a ao backend.
 2. **Deploy**: Configurar o deploy da aplicação usando Docker e plataformas como AWS ou Heroku.
 
 ---
@@ -137,4 +143,3 @@ Tests:       4 passed, 4 total
 Todos os Direitos Reservados
 
 [MIT](https://choosealicense.com/licenses/mit/)
-```
