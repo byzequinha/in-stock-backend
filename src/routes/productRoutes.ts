@@ -34,6 +34,10 @@ const productRoutes = Router();
  *                     type: string
  *                   price:
  *                     type: number
+ *                   stock:
+ *                     type: integer
+ *                   min_stock:
+ *                     type: integer
  */
 productRoutes.get('/', async (req: Request, res: Response) => {
   try {
@@ -62,31 +66,30 @@ productRoutes.get('/', async (req: Request, res: Response) => {
  *                 type: string
  *               price:
  *                 type: number
+ *               stock:
+ *                 type: integer
+ *               min_stock:
+ *                 type: integer
  *     responses:
  *       201:
  *         description: Produto criado com sucesso.
  *       400:
  *         description: Dados inválidos.
  */
-productRoutes.post('/', async (req: Request, res: Response) => {
-  const { name, price } = req.body;
+productRoutes.post('/', validateBody(productSchema), async (req: Request, res: Response) => {
+  const { name, price, stock, min_stock } = req.body;
 
   try {
-    console.log('Inserting product:', { name, price }); // Log para depuração
     const result = await pool.query(
-      'INSERT INTO products (name, price) VALUES ($1, $2) RETURNING *',
-      [name, parseFloat(price)] // Converte para número ao salvar
+      'INSERT INTO products (name, price, stock, min_stock) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, price, stock, min_stock]
     );
-    const product = result.rows[0];
-    product.price = parseFloat(product.price); // Garante que o retorno seja numérico
-    res.status(201).json(product);
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('Database error:', err); // Log detalhado do erro
+    console.error('Database error:', err);
     res.status(500).json({ error: 'Database error' });
   }
 });
-
-
 
 /**
  * @swagger
@@ -112,6 +115,10 @@ productRoutes.post('/', async (req: Request, res: Response) => {
  *                 type: string
  *               price:
  *                 type: number
+ *               stock:
+ *                 type: integer
+ *               min_stock:
+ *                 type: integer
  *     responses:
  *       200:
  *         description: Produto atualizado com sucesso.
@@ -122,12 +129,12 @@ productRoutes.post('/', async (req: Request, res: Response) => {
  */
 productRoutes.put('/:id', validateBody(productSchema), async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, price } = req.body;
+  const { name, price, stock, min_stock } = req.body;
 
   try {
     const result = await pool.query(
-      'UPDATE products SET name = $1, price = $2 WHERE id = $3 RETURNING *',
-      [name, price, id]
+      'UPDATE products SET name = $1, price = $2, stock = $3, min_stock = $4 WHERE id = $5 RETURNING *',
+      [name, price, stock, min_stock, id]
     );
     if (result.rowCount === 0) {
       res.status(404).json({ error: 'Product not found' });
@@ -166,22 +173,6 @@ productRoutes.put('/:id', validateBody(productSchema), async (req: Request, res:
  *     responses:
  *       200:
  *         description: Venda registrada com sucesso.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 product:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     name:
- *                       type: string
- *                     price:
- *                       type: number
  *       400:
  *         description: Dados inválidos.
  *       404:
@@ -197,15 +188,23 @@ productRoutes.post('/:id/sale', async (req: Request<{ id: string }>, res: Respon
   }
 
   try {
-    const result = await pool.query(
-      'UPDATE products SET price = price - $1 WHERE id = $2 RETURNING *',
+    const productResult = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
+    if (productResult.rowCount === 0) {
+      res.status(404).json({ error: 'Product not found' });
+      return;
+    }
+
+    const product = productResult.rows[0];
+    if (product.stock < quantity) {
+      res.status(400).json({ error: 'Insufficient stock' });
+      return;
+    }
+
+    const updatedProduct = await pool.query(
+      'UPDATE products SET stock = stock - $1 WHERE id = $2 RETURNING *',
       [quantity, id]
     );
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Product not found' });
-    } else {
-      res.json({ message: 'Product sale registered', product: result.rows[0] });
-    }
+    res.json({ message: 'Product sale registered', product: updatedProduct.rows[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });

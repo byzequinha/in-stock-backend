@@ -13,4 +13,14 @@ export const productSchema = Joi.object({
     'number.positive': 'O preço deve ser um número positivo.',
     'any.required': 'O preço é obrigatório.',
   }),
+  stock: Joi.number().integer().min(0).required().messages({
+    'number.base': 'O estoque deve ser um número inteiro.',
+    'number.min': 'O estoque não pode ser negativo.',
+    'any.required': 'O estoque é obrigatório.',
+  }),
+  min_stock: Joi.number().integer().min(0).required().messages({
+    'number.base': 'O estoque mínimo deve ser um número inteiro.',
+    'number.min': 'O estoque mínimo não pode ser negativo.',
+    'any.required': 'O estoque mínimo é obrigatório.',
+  }),
 });
