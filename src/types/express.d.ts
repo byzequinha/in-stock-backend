@@ -1,11 +1,9 @@
-import { Request } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 
-declare module 'express' {
-  export interface Request {
-    user?: {
-      id: number;
-      matricula: string;
-      nivel: string;
-    };
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload & { id: number; matricula: string; nivel: string };
+    }
   }
 }

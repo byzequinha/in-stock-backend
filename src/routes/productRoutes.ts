@@ -39,13 +39,24 @@ const productRoutes = Router();
  *                   min_stock:
  *                     type: integer
  */
-productRoutes.get('/', async (req: Request, res: Response) => {
+productRoutes.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await pool.query('SELECT * FROM products');
+
+    if (result.rows.length === 0) {
+      // Retorna uma mensagem amigável se não houver produtos
+      res.status(200).json({ message: 'Nenhum produto encontrado no momento.' });
+      return;
+    }
+
+    // Retorna os produtos encontrados
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
+    console.error('Erro ao buscar produtos:', err);
+    res.status(500).json({
+      error: 'Erro interno no servidor',
+      detalhes: err instanceof Error ? err.message : String(err),
+    });
   }
 });
 
