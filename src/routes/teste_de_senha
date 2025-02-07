@@ -1,6 +1,0 @@
-const bcrypt = require('bcrypt');
-
-const senha = 'senha123'; // Senha que você quer testar
-const hash = bcrypt.hashSync(senha, 10);
-
-console.log('Novo hash gerado:', hash);

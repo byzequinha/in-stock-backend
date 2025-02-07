@@ -1,97 +1,90 @@
 import express from 'express';
-import cors from 'cors'; 
+import cors from 'cors';
 import dotenv from 'dotenv';
-import productRoutes from './routes/productRoutes';
-import { setupSwagger } from './config/swagger'; // Configuração do Swagger
 import pool from './config/database';
+import { setupSwagger } from './config/swagger'; 
 import authRoutes from './routes/authRoutes';
+import productRoutes from './routes/productRoutes';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config();
 
+const app = express();
 const port = process.env.PORT || 3001;
 
-if (!process.env.CLIENT_URL || !process.env.PORT) {
-  console.error('Variáveis de ambiente não configuradas corretamente.');
-  process.exit(1); // Encerra o processo se faltar algo
+// Verifica se as variáveis de ambiente estão configuradas corretamente
+if (!process.env.CLIENT_URL) {
+  console.error('Erro: Variável de ambiente CLIENT_URL não configurada.');
+  process.exit(1);
 }
 
-const app = express();
+// 🔧 Configurar CORS
+const allowedOrigins = [process.env.CLIENT_URL || 'http://localhost:3000'];
 
-// Configurar CORS
-defineCORS();
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error(`🚨 CORS bloqueado para a origem: ${origin}`);
+        callback(new Error(`A origem ${origin} não está permitida pelo CORS.`));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
-function defineCORS() {
-  const allowedOrigins = [process.env.CLIENT_URL || 'http://localhost:3000'];
+console.log(`✅ CORS configurado com as origens permitidas: ${allowedOrigins.join(', ')}`);
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          console.error(`CORS bloqueado para a origem: ${origin}`);
-          callback(new Error(`A origem ${origin} não está permitida pelo CORS.`));
-        }
-      },
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    })
-  );
-
-  console.log(`CORS configurado com as origens permitidas: ${allowedOrigins.join(', ')}`);
-}
-
-// Middleware para parsear JSON
+// Middleware para leitura de JSON
 app.use(express.json());
 
-// Configurar Swagger
+// Configuração do Swagger
 setupSwagger(app);
 
-// Rota raiz
+// 🏠 **Rota raiz**
 app.get('/', (req, res) => {
-  res.send('Welcome to the In Stock API!');
+  res.send('🚀 Bem-vindo à API do In Stock!');
 });
 
-// Rotas para produtos
-app.use('/api/products', productRoutes);
-app.use('/api', authRoutes);
-
-// Rota /api para verificar status da API
-app.get('/api', async (req, res) => {
+// 🟢 **Rota para verificar status da API e conexão com o banco**
+app.get('/api/status', async (req, res) => {
   try {
-    const dbStatus = await pool.query('SELECT 1');
+    await pool.query('SELECT 1');
     res.json({
-      message: 'API is working!',
-      version: '1.0.0',
-      database: dbStatus ? 'Connected' : 'Disconnected',
+      status: 'OK',
+      database: 'Connected',
+      environment: process.env.NODE_ENV || 'development',
     });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao verificar o status do banco de dados.' });
+    res.status(500).json({ status: 'ERROR', database: 'Disconnected' });
   }
 });
 
-// Middleware para tratar rotas não encontradas
-app.use((req, res, next) => {
+// 🚀 **Registrar todas as rotas**
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+
+// ❌ **Middleware para rotas não encontradas**
+app.use((req, res) => {
   res.status(404).json({ message: 'Rota não encontrada!' });
 });
 
-// Middleware para tratamento de erros
+// ❌ **Middleware global para tratamento de erros**
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  const status = err.status || 500;
-  const message = process.env.NODE_ENV === 'production'
-    ? 'Algo deu errado!'
-    : err.message || 'Erro interno do servidor!';
-  res.status(status).json({ message });
+  console.error('Erro no servidor:', err.stack);
+  res.status(500).json({ message: 'Erro interno do servidor!' });
 });
 
-// Exportar o `app` para uso em testes
-export default app;
-
-// Inicializar o servidor somente se o arquivo for executado diretamente
+// 🚀 **Inicia o servidor apenas se for executado diretamente**
 if (require.main === module) {
   app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-    console.log(`Swagger Docs available at http://localhost:${port}/api-docs`);
+    console.log(`✅ Servidor rodando em http://localhost:${port}`);
+    console.log(`📄 Documentação Swagger disponível em http://localhost:${port}/api-docs`);
   });
 }
+
+export default app;

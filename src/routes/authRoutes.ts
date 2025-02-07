@@ -10,84 +10,73 @@ const JWT_SECRET = process.env.JWT_SECRET || 'defaultSecretKey';
 // Rota para login
 authRoutes.post('/login', async (req: Request, res: Response): Promise<void> => {
   const { matricula, senha } = req.body;
+  console.log("🔍 Tentando login com matrícula:", matricula);
 
   try {
-    console.log('Dados recebidos no login:', req.body);
-    console.log(`Tentativa de login para matrícula: ${matricula}`);
-
     const userResult = await pool.query('SELECT * FROM users WHERE matricula = $1', [matricula]);
-    console.log('Resultado da consulta SQL:', userResult.rows);
+    console.log("🔎 Resultado da consulta SQL:", userResult.rows);
 
-    const user = userResult.rows[0];
-
-    if (!user) {
-      console.log(`Usuário não encontrado para matrícula: ${matricula}`);
-      res.status(401).json({ message: 'Credenciais inválidas!' });
+    if (userResult.rows.length === 0) {
+      console.log("⚠️ Nenhum usuário encontrado com essa matrícula!");
+      res.status(401).json({ message: "Credenciais inválidas!" });
       return;
     }
 
-    console.log(`Senha enviada: ${senha}`);
-    console.log(`Hash armazenado: ${user.senha}`);
+    const user = userResult.rows[0];
+    console.log("🔐 Hash armazenado no banco:", user.senha);
 
-    const isPasswordValid = bcrypt.compareSync(senha, user.senha);
-    console.log(`Resultado da comparação de senha para matrícula ${matricula}: ${isPasswordValid}`);
+    const isPasswordValid = await bcrypt.compare(senha, user.senha);
+    console.log(`🔍 Comparação de senha: ${isPasswordValid ? "✅ Válida" : "❌ Inválida"}`);
 
     if (!isPasswordValid) {
-      console.log(`Senha incorreta para matrícula: ${matricula}`);
-      res.status(401).json({ message: 'Credenciais inválidas!' });
+      res.status(401).json({ message: "Credenciais inválidas!" });
       return;
     }
 
     const token = jwt.sign(
       { id: user.id, matricula: user.matricula, nivel: user.nivel, nome: user.nome },
-      JWT_SECRET,
+      process.env.JWT_SECRET || 'defaultSecretKey',
       { expiresIn: '1h' }
     );
 
-    console.log(`Login bem-sucedido para matrícula: ${matricula}, Token gerado: ${token}`);
-
-    await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
-    console.log(`Último login atualizado para o usuário ID: ${user.id}`);
-
+    console.log("✅ Login bem-sucedido! Token gerado:", token);
     res.json({ token, nome: user.nome });
+
   } catch (error) {
-    console.error('Erro ao processar login:', error);
-    res.status(500).json({ message: 'Erro interno no servidor' });
+    console.error("❌ Erro ao processar login:", error);
+    res.status(500).json({ message: "Erro interno no servidor" });
   }
 });
+
 
 // Rota para buscar informações do usuário logado
 authRoutes.get(
   '/user',
-  authenticateToken as RequestHandler,
+  authenticateToken,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const userId = (req.user as JwtPayload)?.id;
-
+      const userId = (req.user as any)?.id;
       if (!userId) {
-        console.log('Token ausente ou inválido na requisição.');
-        res.status(401).json({ message: 'Usuário não autenticado!' });
-        return;
+        res.status(401).json({ message: "Usuário não autenticado!" });
       }
 
-      console.log(`Buscando informações para o usuário com ID: ${userId}`);
-
+      console.log(`🔍 Buscando informações do usuário com ID: ${userId}`);
       const userResult = await pool.query(
-        'SELECT matricula, nivel, last_login, nome FROM users WHERE id = $1',
+        'SELECT id, nome, nivel, last_login FROM users WHERE id = $1',
         [userId]
       );
       const user = userResult.rows[0];
 
       if (!user) {
-        console.log(`Usuário não encontrado para o ID: ${userId}`);
-        res.status(404).json({ message: 'Usuário não encontrado!' });
-        return;
+        console.warn(`⚠️ Usuário não encontrado para ID: ${userId}`);
+        res.status(404).json({ message: "Usuário não encontrado!" });
       }
 
+      console.log("✅ Usuário retornado:", user);
       res.json(user);
     } catch (error) {
-      console.error('Erro ao buscar informações do usuário:', error);
-      res.status(500).json({ message: 'Erro interno no servidor' });
+      console.error("❌ Erro ao buscar usuário:", error);
+      res.status(500).json({ message: "Erro interno no servidor" });
     }
   }
 );

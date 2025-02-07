@@ -1,5 +1,4 @@
-
-# In Stock - Backend
+# In Stock - backend
 
 Um sistema de controle de estoque eficiente, com autenticação baseada em JWT, CRUD completo para gerenciamento de usuários e validações robustas. Desenvolvido com Node.js, Express, TypeScript e testes automatizados.
 
@@ -11,27 +10,29 @@ Um sistema de controle de estoque eficiente, com autenticação baseada em JWT, 
 - [Configuração e Instalação](#configuração-e-instalação)
 - [Endpoints Disponíveis](#endpoints-disponíveis)
 - [Testes Automatizados](#testes-automatizados)
+- [Backup e Restauração do Banco de Dados](#backup-e-restauração-do-banco-de-dados)
 - [Próximos Passos](#próximos-passos)
 
 ---
 
 ## Sobre o Projeto
 
-O **In Stock** é uma aplicação backend para controle de estoque, com foco em flexibilidade, segurança e usabilidade. Atualmente, oferece CRUD completo para gerenciar usuários e produtos, autenticação segura com JWT, validações robustas usando Joi/Zod e suporte para controle hierárquico (Supervisor, Usuário, etc.).
+O **In Stock** é uma aplicação backend para controle de estoque, com foco em flexibilidade, segurança e usabilidade. Atualmente, oferece CRUD completo para gerenciar usuários e produtos, autenticação segura com JWT, validações robustas usando Joi e suporte para controle hierárquico (Supervisor, Usuário, etc.).
 
 ---
 
 ## Tecnologias Utilizadas
-- **Node.js**: Ambiente de execução JavaScript.
-- **Express**: Framework web para criar APIs RESTful.
-- **TypeScript**: Tipagem estática para JavaScript.
-- **PostgreSQL**: Banco de dados relacional.
-- **JWT (JSON Web Tokens)**: Autenticação segura.
-- **Docker**: Contêiner para facilitar deploy e desenvolvimento.
-- **Joi/Zod**: Validações de entrada de dados.
-- **Jest**: Framework de testes automatizados.
-- **Swagger**: Documentação e testes de endpoints da API.
-- **ThunderClient**: Ferramenta para testes de APIs.
+- **Node.js**: Ambiente de execução JavaScript
+- **Express**: Framework web para criar APIs RESTful
+- **TypeScript**: Tipagem estática para JavaScript
+- **PostgreSQL**: Banco de dados relacional
+- **JWT (JSON Web Tokens)**: Autenticação segura
+- **Docker & Docker Compose**: Contêinerização para deploy e desenvolvimento
+- **Joi**: Validações de entrada de dados
+- **Jest**: Framework de testes automatizados
+- **Swagger**: Documentação e testes de endpoints da API
+- **Bcrypt**: Criptografia de senhas
+- **CORS**: Middleware para configuração de CORS
 
 ---
 
@@ -52,7 +53,7 @@ npm install
 Crie um arquivo `.env` na raiz do projeto e configure as seguintes variáveis:
 ```bash
 PORT=3000
-JWT_SECRET=defaultSecretKey
+JWT_SECRET=sua_chave_secreta
 POSTGRES_USER=seu_usuario
 POSTGRES_PASSWORD=sua_senha
 POSTGRES_DB=in_stock
@@ -61,8 +62,21 @@ POSTGRES_PORT=5432
 ```
 
 ### 4. Iniciar o Servidor
+
+**Desenvolvimento:**
 ```bash
-npx ts-node-dev src/server.ts
+npm run dev
+```
+
+**Produção:**
+```bash
+npm run build
+npm start
+```
+
+**Com Docker:**
+```bash
+docker-compose up --build
 ```
 
 ---
@@ -70,7 +84,7 @@ npx ts-node-dev src/server.ts
 ## Endpoints Disponíveis
 
 **Autenticação**
-- POST `/api/auth/login`: Autentica um usuário mockado e retorna um token JWT.
+- POST `/api/auth/login`: Autentica um usuário e retorna um token JWT.
 
 **Usuários**
 - GET `/api/users`: Lista todos os usuários (Apenas Supervisores).
@@ -91,7 +105,7 @@ npx ts-node-dev src/server.ts
 ## Testes Automatizados
 
 ### Testes com Swagger
-Os endpoints foram inicialmente testados usando **Swagger**, garantindo que a estrutura da API e as respostas esperadas estivessem corretas antes da implementação das validações com **Joi/Zod**.
+Os endpoints foram inicialmente testados usando **Swagger**, garantindo que a estrutura da API e as respostas esperadas estivessem corretas antes da implementação das validações com **Joi**.
 
 ### Testes com Jest
 Após a implementação das validações, os testes automatizados foram realizados com **Jest** para garantir a robustez do sistema. Foram testados casos de validação de dados e integração com a API, incluindo:
@@ -104,22 +118,39 @@ Para rodar os testes:
 npm test
 ```
 
-Saída esperada:
-```plaintext
-PASS  src/tests/productValidation.test.ts
-  Product Validation
-    ✓ Deve validar um produto válido (2 ms)
-    ✓ Deve falhar quando o nome for curto (1 ms)
-    ✓ Deve falhar quando o preço for negativo
-    ✓ Deve falhar quando o preço não for fornecido
+Para rodar os testes com coverage:
+```bash
+npm test -- --coverage
+```
 
-PASS  src/tests/productRoutes.test.ts
-  Testes de Integração - Produtos
-    ✓ Deve criar um novo produto (50 ms)
-    ✓ Deve listar os produtos (40 ms)
+---
 
-Test Suites: 2 passed, 2 total
-Tests:       6 passed, 6 total
+## Backup e Restauração do Banco de Dados
+
+Para realizar um backup completo do banco de dados, execute o seguinte comando:
+
+```bash
+docker exec -t in_stock_postgres pg_dump -U admin -d in_stock_db > backup_in_stock_db.sql
+```
+
+Isso criará um arquivo `backup_in_stock_db.sql` contendo toda a estrutura e os dados do banco.
+
+Para restaurar o banco de dados em outro ambiente, utilize:
+
+```bash
+docker exec -i in_stock_postgres psql -U admin -d in_stock_db < backup_in_stock_db.sql
+```
+
+Caso precise visualizar todas as tabelas existentes, execute:
+
+```bash
+docker exec -it in_stock_postgres psql -U admin -d in_stock_db -c "\dt"
+```
+
+E para visualizar os dados de uma tabela específica:
+
+```bash
+docker exec -it in_stock_postgres psql -U admin -d in_stock_db -c "SELECT * FROM nome_da_tabela;"
 ```
 
 ---
@@ -143,3 +174,4 @@ Tests:       6 passed, 6 total
 Todos os Direitos Reservados
 
 [MIT](https://choosealicense.com/licenses/mit/)
+
